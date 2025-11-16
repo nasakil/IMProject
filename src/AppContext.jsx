@@ -7,6 +7,11 @@ export function AppProvider({ children }) {
   const [recentActivity, setRecentActivity] = useState([])
   const [payees, setPayees] = useState([])
   const [attachedFiles, setAttachedFiles] = useState({})
+  const [selectedPayee, setSelectedPayee] = useState(null)
+  const [payeeCOA, setPayeeCOA] = useState({})
+  const [currentCOA, setCurrentCOA] = useState({})
+  const [currentPayee, setCurrentPayee] = useState(null)
+
 
   const [stats, setStats] = useState({
     totalDisbursedToday: 0,
@@ -72,6 +77,18 @@ export function AppProvider({ children }) {
     })
   }
 
+  function updatePayeeCOA(payeeName, newCOA) {
+  setPayeeCOA(prev => ({
+    ...prev,
+    [payeeName]: newCOA
+  }))
+  if (currentPayee?.name === payeeName) setCurrentCOA(newCOA)
+}
+
+function getPayeeCOA(payeeName) {
+  return payeeCOA[payeeName] || null
+}
+
   function markDisbursementFailed(index) {
     setPendingApprovals(prev => {
       const item = prev[index]
@@ -128,19 +145,29 @@ export function AppProvider({ children }) {
   }
 
   const value = {
-    stats,
-    recentActivity,
-    pendingApprovals,
-    payees,
-    attachedFiles,
-    setPayees,
-    setAttachedFiles,
-    addDisbursement,
-    cancelDisbursement,
-    markDisbursementFailed,
-    deletePendingApproval,
-    updatePayeeDetails
-  }
+  stats,
+  recentActivity,
+  pendingApprovals,
+  payees,
+  attachedFiles,
+  selectedPayee,
+  setSelectedPayee,
+  setPayees,
+  setAttachedFiles,
+  payeeCOA,
+  updatePayeeCOA,
+  getPayeeCOA,
+  addDisbursement,
+  cancelDisbursement,
+  markDisbursementFailed,
+  deletePendingApproval,
+  updatePayeeDetails,
+  currentPayee,
+  setCurrentPayee,
+  currentCOA,
+  setCurrentCOA
+}
+
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
 }

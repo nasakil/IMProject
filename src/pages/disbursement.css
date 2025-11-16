@@ -9,6 +9,7 @@
   flex-direction: column;
   gap: 16px;
   max-width: 600px;
+  height: 500px;
 }
 
 .form-row {
@@ -75,4 +76,16 @@
 .form-row textarea::-webkit-scrollbar-thumb {
   background: rgba(0,0,0,0.12);
   border-radius: 6px;
+}
+
+.error-holder {
+  height: 5px;
+  margin-top: 2px;
+  position: relative;
+}
+
+.error-text {
+  color: red;
+  font-size: 12px;
+  position: absolute;
 }

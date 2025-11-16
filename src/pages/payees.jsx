@@ -12,22 +12,33 @@ export default function Payees() {
   const [selectedIndex, setSelectedIndex] = useState(null)
   const [editForm, setEditForm] = useState({
     name: "",
-    contact: "",
-    method: "",
+    contactNumber: "",
+    tin: "",
+    address: "",
+    contactPerson: "",
     account: ""
   })
 
-  function handleLogout() {
-    navigate("/")
-  }
+  // Add Payee modal state
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [addForm, setAddForm] = useState({
+    name: "",
+    contactNumber: "",
+    tin: "",
+    address: "",
+    contactPerson: "",
+    account: ""
+  })
 
   function openModal(payee, index) {
     setSelectedPayee(payee)
     setSelectedIndex(index)
     setEditForm({
       name: payee.name,
-      contact: payee.contact,
-      method: payee.method,
+      contactNumber: payee.contact || "",
+      tin: payee.tin || "",
+      address: payee.address || "",
+      contactPerson: payee.contactPerson || "",
       account: payee.account || ""
     })
   }
@@ -61,19 +72,6 @@ export default function Payees() {
     closeModal()
   }
 
-  function handleDownload(file) {
-    if (!file) {
-      alert("No files attached.")
-      return
-    }
-    const url = URL.createObjectURL(file)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = file.name
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
   function handleDelete(payeeName) {
     const confirmed = window.confirm("Are you sure you want to delete this payee?")
     if (confirmed) {
@@ -81,6 +79,51 @@ export default function Payees() {
       setSelectedPayee(null)
       alert("Payee deleted.")
     }
+  }
+
+  function openAddModal() {
+    setAddForm({
+      name: "",
+      contactNumber: "",
+      tin: "",
+      address: "",
+      contactPerson: "",
+      account: ""
+    })
+    setShowAddModal(true)
+  }
+
+  function closeAddModal() {
+    setShowAddModal(false)
+  }
+
+  function handleAddChange(e) {
+    const { name, value } = e.target
+    setAddForm(prev => ({ ...prev, [name]: value }))
+  }
+
+  function handleAddSave() {
+    if (!addForm.name.trim()) {
+      alert("Name is required.")
+      return
+    }
+    setPayees(prev => [
+      ...prev,
+      {
+        name: addForm.name,
+        contact: addForm.contactNumber,
+        tin: addForm.tin,
+        address: addForm.address,
+        contactPerson: addForm.contactPerson,
+        account: addForm.account || ""
+      }
+    ])
+    setShowAddModal(false)
+    alert("Payee added.")
+  }
+
+  function handleLogout() {
+    navigate("/")
   }
 
   return (
@@ -93,7 +136,8 @@ export default function Payees() {
           <NavLink to="/dashboard" className="nav-item">Dashboard</NavLink>
           <NavLink to="/disbursement" className="nav-item">Disbursement</NavLink>
           <NavLink to="/payees" className="nav-item">Payees</NavLink>
-          <NavLink to="/reports" className="nav-item">Reports</NavLink>
+          <NavLink to="/summary" className="nav-item">Summary</NavLink>
+          <NavLink to="/chartofaccounts" className="nav-item">Chart of Accounts</NavLink>
         </nav>
         <button className="logout" onClick={handleLogout}>Log Out</button>
       </aside>
@@ -104,34 +148,39 @@ export default function Payees() {
           <div className="top-controls">
             <input className="search" placeholder="Search..." />
             <button className="gear" aria-label="settings">⚙️</button>
+            {/* moved Add Payee next to the table */}
           </div>
         </header>
 
-        <section className="content-table">
-          <table className="payees-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Contact Info</th>
-                <th>Method</th>
-                <th>Account Details</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+        {/* table plus right-side action column */}
+        <div className="table-wrapper">
+          <section className="content-table">
+            <table className="payees-table">
+             <thead>
+               <tr>
+                 <th>Name</th>
+                 <th>Contact Number</th>
+                 <th>TIN Number</th>
+                 <th>Address</th>
+                 <th>Contact Person</th>
+                 <th>Actions</th>
+               </tr>
+             </thead>
+             <tbody>
               {payees.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="empty-text">
-                    No payees yet. Submit a disbursement first.
+                  <td colSpan="6" className="empty-text">
+                    No payees yet. Click add payee to add one.
                   </td>
                 </tr>
               ) : (
                 payees.map((p, i) => (
                   <tr key={i}>
                     <td>{p.name}</td>
-                    <td>{p.contact}</td>
-                    <td>{p.method}</td>
-                    <td>{p.account || <span className="empty">Empty</span>}</td>
+                    <td>{p.contact || ""}</td>
+                    <td>{p.tin || ""}</td>
+                    <td>{p.address || ""}</td>
+                    <td>{p.contactPerson || ""}</td>
                     <td>
                       <button onClick={() => openModal(p, i)}>View</button>
                     </td>
@@ -141,6 +190,11 @@ export default function Payees() {
             </tbody>
           </table>
         </section>
+
+        <aside className="table-side" aria-hidden={showAddModal ? "false" : "true"}>
+            <button className="add-payee" onClick={openAddModal}>Add Payee</button>
+          </aside>
+        </div>
 
         {selectedPayee && (
           <div className="modal-overlay">
@@ -157,26 +211,39 @@ export default function Payees() {
               </div>
 
               <div className="form-row">
-                <label>Contact Info:</label>
+                <label>Contact Number:</label>
                 <input
-                  name="contact"
-                  value={editForm.contact}
+                  name="contactNumber"
+                  value={editForm.contactNumber}
                   onChange={handleEditChange}
                 />
               </div>
 
               <div className="form-row">
-                <label>Method:</label>
-                <select
-                  name="method"
-                  value={editForm.method}
+                <label>TIN Number:</label>
+                <input
+                  name="tin"
+                  value={editForm.tin}
                   onChange={handleEditChange}
-                >
-                  <option>Bank Transfer</option>
-                  <option>Online Payment</option>
-                  <option>Cash</option>
-                  <option>Check</option>
-                </select>
+                />
+              </div>
+
+              <div className="form-row">
+                <label>Address:</label>
+                <input
+                  name="address"
+                  value={editForm.address}
+                  onChange={handleEditChange}
+                />
+              </div>
+
+              <div className="form-row">
+                <label>Contact Person:</label>
+                <input
+                  name="contactPerson"
+                  value={editForm.contactPerson}
+                  onChange={handleEditChange}
+                />
               </div>
 
               <div className="form-row">
@@ -192,12 +259,6 @@ export default function Payees() {
                 <button onClick={handleSave}>Save</button>
 
                 <button
-                  onClick={() => handleDownload(selectedPayee.file)}
-                >
-                  {selectedPayee.file ? "Download Attached File" : "No Files Attached"}
-                </button>
-
-                <button
                   className="delete-btn"
                   onClick={() => handleDelete(selectedPayee.name)}
                 >
@@ -205,6 +266,44 @@ export default function Payees() {
                 </button>
 
                 <button onClick={closeModal}>Close</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showAddModal && (
+          <div className="modal-overlay">
+            <div className="modal" role="dialog" aria-modal="true">
+              <h2>Add Payee</h2>
+
+              <div className="form-row">
+                <label>Name:</label>
+                <input name="name" value={addForm.name} onChange={handleAddChange} />
+              </div>
+
+              <div className="form-row">
+                <label>Contact Number:</label>
+                <input name="contactNumber" value={addForm.contactNumber} onChange={handleAddChange} />
+              </div>
+
+              <div className="form-row">
+                <label>TIN Number:</label>
+                <input name="tin" value={addForm.tin} onChange={handleAddChange} />
+              </div>
+
+              <div className="form-row">
+                <label>Address:</label>
+                <input name="address" value={addForm.address} onChange={handleAddChange} />
+              </div>
+
+              <div className="form-row">
+                <label>Contact Person:</label>
+                <input name="contactPerson" value={addForm.contactPerson} onChange={handleAddChange} />
+              </div>
+
+              <div className="modal-actions">
+                <button onClick={handleAddSave}>Save</button>
+                <button onClick={closeAddModal}>Cancel</button>
               </div>
             </div>
           </div>

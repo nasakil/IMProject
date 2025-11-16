@@ -7,7 +7,8 @@ import eyeClosed from "./crossedeye.png"
 import Dashboard from "./pages/dashboard"
 import Disbursement from "./pages/disbursement"
 import Payees from "./pages/payees"
-import Reports from "./pages/reports"
+import Summary from "./pages/summary"
+import ChartOfAccounts from "./pages/chartofaccounts"
 import { AppProvider } from "./AppContext";
 
 function Login() {
@@ -71,7 +72,8 @@ export default function AppRouter() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/disbursement" element={<Disbursement />} />
         <Route path="/payees" element={<Payees />} />
-        <Route path="/reports" element={<Reports />} />
+        <Route path="/summary" element={<Summary />} />
+        <Route path="/chartofaccounts" element={<ChartOfAccounts />} />
       </Routes>
       </AppProvider>
     </BrowserRouter>

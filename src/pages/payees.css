@@ -128,3 +128,96 @@
   cursor: pointer;
   border-radius: 4px;
 }
+
+/* new: container for the table-level actions (e.g. Add Payee) */
+.table-actions {
+  max-width: 975px;     /* match table width */
+  margin: 12px auto 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  box-sizing: border-box;
+  padding: 0 6px;
+}
+
+/* restyle/add-payee button so it fits next to table */
+.add-payee {
+  background: var(--accent, #b85a5a);
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.add-payee:hover {
+  opacity: 0.95;
+}
+
+/* reduce top margin of content-table if needed */
+.content-table {
+  margin-top: 8px;
+  max-width: 975px;
+  max-height: 480px;
+  overflow: auto;
+  box-sizing: border-box;
+}
+
+/* container for the table-level actions (e.g. Add Payee) */
+.table-wrapper {
+  max-width: 1500px;
+  margin: 12px auto 0;
+  display: flex;
+  gap: 16px;
+  box-sizing: border-box;
+  align-items: stretch;
+}
+
+/* left column: payees table takes 80% */
+.table-wrapper .content-table {
+  flex: 0 0 80%;
+  max-width: 80%;
+  margin-top: 8px;
+  box-sizing: border-box;
+}
+
+/* right column: action area takes 20% and centers the button */
+.table-side {
+  flex: 0 0 20%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+/* make add-payee fill the right column nicely */
+.add-payee {
+  width: 100%;
+  max-width: 160px;
+  background: var(--accent, #b85a5a);
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.add-payee:hover { opacity: 0.95; }
+
+/* responsive: stack on small screens */
+@media (max-width: 900px) {
+  .table-wrapper {
+    flex-direction: column;
+  }
+  .table-wrapper .content-table,
+  .table-side {
+    flex: none;
+    max-width: 100%;
+    width: 100%;
+  }
+  .add-payee {
+    max-width: none;
+    width: auto;
+  }
+}

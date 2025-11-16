@@ -58,8 +58,11 @@ export default function Dashboard() {
           <NavLink to="/payees" className="nav-item">
             Payees
           </NavLink>
-          <NavLink to="/reports" className="nav-item">
-            Reports
+          <NavLink to="/summary" className="nav-item">
+            Summary
+          </NavLink>
+          <NavLink to="/chartofaccounts" className="nav-item">
+            Chart of Accounts
           </NavLink>
         </nav>
         <button className="logout" onClick={handleLogout}>

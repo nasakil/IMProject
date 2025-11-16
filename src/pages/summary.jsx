@@ -1,11 +1,11 @@
 import React, { useContext, useState } from "react"
 import "./dashboard.css"
-import "./reports.css"
+import "./summary.css"
 import logo from "./logo.png"
 import { NavLink, useNavigate } from "react-router-dom"
 import { AppContext } from "../AppContext"
 
-export default function Reports() {
+export default function Sumarry() {
   const navigate = useNavigate()
   const { pendingApprovals, markDisbursementFailed, deletePendingApproval } = useContext(AppContext)
   const [selectedIndex, setSelectedIndex] = useState(null)
@@ -56,14 +56,15 @@ export default function Reports() {
           <NavLink to="/dashboard" className="nav-item">Dashboard</NavLink>
           <NavLink to="/disbursement" className="nav-item">Disbursement</NavLink>
           <NavLink to="/payees" className="nav-item">Payees</NavLink>
-          <NavLink to="/reports" className="nav-item">Reports</NavLink>
+          <NavLink to="/summary" className="nav-item">Summary</NavLink>
+          <NavLink to="/chartofaccounts" className="nav-item">Chart of Accounts</NavLink>
         </nav>
         <button className="logout" onClick={handleLogout}>Log Out</button>
       </aside>
 
       <main className="main">
         <header className="topbar">
-          <h1 className="page-title">Reports</h1>
+          <h1 className="page-title">Summary</h1>
           <div className="top-controls">
             <input className="search" placeholder="Search..." />
             <button className="gear" aria-label="settings">⚙️</button>
