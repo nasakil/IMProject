@@ -7,7 +7,7 @@ import { AppContext } from "../AppContext"
 
 export default function Sumarry() {
   const navigate = useNavigate()
-  const { pendingApprovals, markDisbursementFailed, deletePendingApproval } = useContext(AppContext)
+  const { pendingApprovals, markDisbursementFailed, deletePendingApproval, approveDisbursement } = useContext(AppContext)
   const [selectedIndex, setSelectedIndex] = useState(null)
 
   function handleLogout() {
@@ -34,6 +34,12 @@ export default function Sumarry() {
   function closeModal() {
     setSelectedIndex(null)
   }
+
+  function handleApproveTransaction() {
+  if (selectedIndex == null) return;
+  approveDisbursement(selectedIndex);
+  closeModal();
+}
 
   function handleCancelTransaction() {
     if (selectedIndex == null) return
@@ -139,19 +145,26 @@ export default function Sumarry() {
                 )
               })()}
 
-              <div className="modal-actions">
-                {pendingApprovals[selectedIndex].status !== "Failed" ? (
-                  <button className="cancel-transaction" onClick={handleCancelTransaction}>
-                    Cancel Transaction
-                  </button>
-                ) : (
-                  <button className="delete-transaction" onClick={handleDeletePending}>
-                    Delete
-                  </button>
-                )}
+                <div className="modal-actions">
+              {pendingApprovals[selectedIndex].status === "Pending" && (
+              <>
+          <button className="approve-transaction" onClick={handleApproveTransaction}>
+            Approve Transaction
+          </button>
+          <button className="cancel-transaction" onClick={handleCancelTransaction}>
+            Cancel Transaction
+          </button>
+              </>
+            )}
 
-                <button onClick={closeModal}>Close</button>
-              </div>
+          {pendingApprovals[selectedIndex].status === "Failed" && (
+          <button className="delete-transaction" onClick={handleDeletePending}>
+          Delete
+        </button>
+      )}
+
+    <button onClick={closeModal}>Close</button>
+  </div>
             </div>
           </div>
         )}

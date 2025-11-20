@@ -14,7 +14,8 @@ export default function ChartOfAccounts() {
     currentPayee,
     setCurrentPayee,
     currentCOA,
-    setCurrentCOA
+    setCurrentCOA,
+    defaultCOA
   } = useContext(AppContext)
 
   const [payeeName, setPayeeName] = useState("")
@@ -22,22 +23,7 @@ export default function ChartOfAccounts() {
   const [selectedTable, setSelectedTable] = useState("Liabilities")
   const [newAccountName, setNewAccountName] = useState("")
 
-  const defaultCOA = {
-    Assets: [
-      { number: 1001, name: "Cash on Hand" },
-      { number: 1002, name: "Cash In Bank" },
-      { number: 1003, name: "Online Payment Account" },
-      { number: 1004, name: "Checks on Hand" }
-    ],
-    Liabilities: [{ number: 2001, name: "Accounts Payable" }],
-    Revenues: [{ number: 3001, name: "Services" }],
-    Expenses: [
-      { number: 4001, name: "Materials" },
-      { number: 4002, name: "Labor" },
-      { number: 4003, name: "Rent" },
-      { number: 4004, name: "Miscellaneous" }
-    ]
-  }
+  
 
   const handleLogout = () => navigate("/")
 
@@ -46,7 +32,7 @@ export default function ChartOfAccounts() {
     setShowModal(false)
     setNewAccountName("")
     setSelectedTable("Liabilities")
-  }
+  } 
 
   // Load currentCOA on mount (when returning to page)
   useEffect(() => {
@@ -134,42 +120,61 @@ export default function ChartOfAccounts() {
           {currentPayee && <button onClick={openModal} style={{ marginLeft: "10px" }}>Add Account</button>}
         </div>
 
-        <div className="coa-center-wrap">
+          <div className="coa-center-wrap">
           <div className="coa-card">
-            {!currentPayee ? (
-              <p style={{ textAlign: "center", marginTop: "50px", color: "black" }}>
-                Enter the payee's name to see their chart of accounts
-              </p>
-            ) : (
-              <>
-                <h3 style={{ marginBottom: "5px"}}>{currentPayee.name}'s Chart of Accounts</h3>
-                {["Assets", "Liabilities", "Revenues", "Expenses"].map(section => (
-                  <table key={section} className="coa-section-table">
-                    <thead>
-                      <tr><th colSpan="4" className="section-header">{section}</th></tr>
-                      <tr>
-                        <th>Account Number</th>
-                        <th>Account Name</th>
-                        <th>Debit</th>
-                        <th>Credit</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {currentCOA[section]?.map(acc => (
-                        <tr key={acc.number}>
-                          <td>{acc.number}</td>
-                          <td>{acc.name}</td>
-                          <td>0</td>
-                          <td>0</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ))}
-              </>
-            )}
-          </div>
-        </div>
+          {!currentPayee ? (
+          <p style={{ textAlign: "center", marginTop: "50px", color: "black" }}>
+            Enter the payee's name to see their chart of accounts
+          </p>
+        ) : (
+        <>
+        <h3 style={{ marginBottom: "5px"}}>{currentPayee.name}'s Chart of Accounts</h3>
+        {["Assets", "Liabilities", "Revenues", "Expenses"].map(section => (
+          <table key={section} className="coa-section-table">
+            <thead>
+              <tr><th colSpan="4" className="section-header">{section}</th></tr>
+              <tr>
+                <th>Account Number</th>
+                <th>Account Name</th>
+                <th>Debit</th>
+                <th>Credit</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentCOA[section]?.map(acc => (
+                <tr key={acc.number}>
+                  <td>{acc.number}</td>
+                  <td>{acc.name}</td>
+                  <td>{acc.debit || 0}</td> 
+                  <td>{acc.credit || 0}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ))}
+
+        {/* Totals Table inside coa-card */}
+        <table className="coa-section-table">
+          <thead>
+            <tr><th colSpan="4" className="section-header">Totals</th></tr>
+            <tr>
+              <th colSpan="2">Total</th>
+              <th>Debit</th>
+              <th>Credit</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colSpan="2"></td>
+              <td>{Object.values(currentCOA).flat().reduce((sum, acc) => sum + (acc.debit || 0), 0)}</td>
+              <td>{Object.values(currentCOA).flat().reduce((sum, acc) => sum + (acc.credit || 0), 0)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </>
+    )}
+  </div>
+  </div>
 
         {showModal && (
           <div className="modal-overlay">

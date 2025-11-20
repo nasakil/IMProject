@@ -1,4 +1,4 @@
-import React, { useState, useContext, useRef, useEffect } from "react"
+import React, { useState, useContext, useEffect } from "react"
 import "./dashboard.css"
 import "./disbursement.css"
 import logo from "../logo.png"
@@ -6,26 +6,32 @@ import { NavLink, useNavigate } from "react-router-dom"
 import { AppContext } from "../AppContext"
 
 export default function Disbursement() {
-  const { addDisbursement, payees } = useContext(AppContext)
+  const { addDisbursement, payees, getPayeeCOA, updatePayeeCOA, defaultCOA } = useContext(AppContext)
   const navigate = useNavigate()
-  const fileInputRef = useRef(null)
+  const [manualAccountError, setManualAccountError] = useState(false)
+
+
+  const accountMap = {
+  Cash: { number: "1001", name: "Cash on Hand" },
+  "Bank Transfer": { number: "1002", name: "Cash in Bank" },
+  "Online Payment": { number: "1003", name: "Online Payment Account" },
+  Check: { number: "1004", name: "Checks on Hand" }
+}
 
   const [form, setForm] = useState({
     name: "",
     method: "",
+    accountNumber: "",
+    manualAccountNumber: "",
     contact: "",
     amount: "",
     date: "",
-    reason: "",
-    file: null
+    reason: ""
   })
 
-  // autosuggest + validation state
-  const [suggestions, setSuggestions] = useState([])
-  const [showSuggestions, setShowSuggestions] = useState(false)
   const [nameError, setNameError] = useState(false)
 
-  // set default date to today (YYYY-MM-DD)
+  // Set default date to today
   useEffect(() => {
     const d = new Date()
     const yyyy = d.getFullYear()
@@ -35,77 +41,97 @@ export default function Disbursement() {
   }, [])
 
   function handleChange(e) {
-    const { name, value, files } = e.target
-    const newVal = files ? files[0] : value
-    // special handling for payee name input (autosuggest + validate)
+    const { name, value } = e.target
+
     if (name === "name") {
-      setForm(prev => ({ ...prev, name: newVal }))
-      const q = String(newVal || "").trim()
+      setForm(prev => ({ ...prev, name: value }))
+
+      const q = value.trim()
       if (!q) {
-        setSuggestions([])
-        setShowSuggestions(false)
         setNameError(false)
         return
       }
+
       const names = (payees || []).map(p => p.name || "")
-      const filtered = names.filter(n => n.toLowerCase().includes(q.toLowerCase()))
-      setSuggestions(filtered)
-      setShowSuggestions(filtered.length > 0)
-      // exact-match validation (case-insensitive)
       const exact = names.find(n => n.toLowerCase() === q.toLowerCase())
       setNameError(!exact)
       return
     }
 
-    setForm(prev => ({
-      ...prev,
-      [name]: newVal
-    }))
+  if (name === "method") {
+  const account = accountMap[value]
+  setForm(prev => ({
+    ...prev,
+    method: value,
+    accountNumber: account?.number || ""
+  }))
+  return
   }
+
+    setForm(prev => ({ ...prev, [name]: value }))
+  }
+
 
   function handleSubmit(e) {
-    e.preventDefault()
+  e.preventDefault()
 
-    if (!form.name || !form.amount || !form.method) {
-      alert("Please fill in the required fields.")
-      return
-    }
-    // prevent submit if name not in payee list
-    const names = (payees || []).map(p => p.name || "")
-    const matched = names.find(n => n.toLowerCase() === String(form.name || "").toLowerCase())
-    if (!matched) {
-      setNameError(true)
-      alert("The payee name is not in the payee's list.")
-      return
-    }
+  if (!form.name || !form.amount || !form.method) {
+    alert("Please fill in the required fields.")
+    return
+  }
 
-    addDisbursement({
-      name: form.name,
-      method: form.method,
-      contact: form.contact,
-      amount: form.amount,
-      date: form.date,
-      reason: form.reason,
-      file: form.file || null
+  const names = (payees || []).map(p => p.name || "")
+  const matched = names.find(n => n.toLowerCase() === form.name.toLowerCase())
+  if (!matched) {
+    setNameError(true)
+    alert("The payee name is not in the payee's list.")
+    return
+  }
+
+  const payeeName = form.name.trim()
+
+  // Validate manual account number if provided
+  const manualNum = Number(form.manualAccountNumber)
+  if (manualNum) {
+    const payeeChart = getPayeeCOA(payeeName)
+    const baseCOA = payeeChart ? JSON.parse(JSON.stringify(payeeChart)) : JSON.parse(JSON.stringify(defaultCOA))
+    
+    let manualAccount = null
+    Object.keys(baseCOA).forEach(sec => {
+      const found = baseCOA[sec].find(acc => acc.number === manualNum)
+      if (found) manualAccount = found
     })
 
-    alert("Disbursement submitted.")
-
-    // Reset all fields including file input
-    setForm({
-      name: "",
-      method: "",
-      contact: "",
-      amount: "",
-      date: "",
-      reason: "",
-      file: null
-    })
-    setNameError(false)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
+    if (!manualAccount) {
+      alert("Invalid manual account number.")
+      return
     }
   }
+
+  // Validate method maps to an account
+  const account = accountMap[form.method]
+  if (!account) {
+    alert("No mapped account code for this payment method.")
+    return
+  }
+
+  // Add to pending disbursements only
+  addDisbursement({ ...form })
+
+  alert("Disbursement submitted and pending approval.")
+
+  setForm({
+    name: "",
+    method: "",
+    accountNumber: "",
+    contact: "",
+    amount: "",
+    manualAccountNumber: "",
+    date: form.date,
+    reason: ""
+  })
+  setNameError(false)
+}
 
   function handleClear() {
     setForm({
@@ -113,13 +139,10 @@ export default function Disbursement() {
       method: "",
       contact: "",
       amount: "",
-      date: "",
-      reason: "",
-      file: null
+      date: form.date,
+      reason: ""
     })
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
-    }
+    setNameError(false)
   }
 
   function handleLogout() {
@@ -137,7 +160,7 @@ export default function Disbursement() {
           <NavLink to="/disbursement" className="nav-item">Disbursement</NavLink>
           <NavLink to="/payees" className="nav-item">Payees</NavLink>
           <NavLink to="/summary" className="nav-item">Summary</NavLink>
-          <NavLink to="/summary" className="nav-item">Chart of Accounts</NavLink>
+          <NavLink to="/chartofaccounts" className="nav-item">Chart of Accounts</NavLink>
         </nav>
         <button className="logout" onClick={handleLogout}>Log Out</button>
       </aside>
@@ -168,15 +191,17 @@ export default function Disbursement() {
             </div>
             </div>
 
-            <div className="form-row">
-              <label>Payment Method:</label>
-              <select name="method" value={form.method} onChange={handleChange}>
-                <option value="">Choose method</option>
-                <option>Bank Transfer</option>
-                <option>Online Payment</option>
-                <option>Cash</option>
-                <option>Check</option>
-              </select>
+            <div className="form-row inline">
+            <label>Payment Method:</label>
+            <select name="method" value={form.method} onChange={handleChange}>
+            <option value="">Choose method</option>
+            <option>Bank Transfer</option>
+            <option>Online Payment</option>
+            <option>Cash</option>
+            <option>Check</option>
+            </select>
+            <label>Account Number:</label>
+            <input type="text" value={form.accountNumber} disabled />
             </div>
 
             <div className="form-row">
@@ -199,13 +224,19 @@ export default function Disbursement() {
                 value={form.amount}
                 onChange={handleChange}
               />
-              <label>Date:</label>
+              <label>Account Number:</label>
               <input
-                name="date"
-                type="date"
-                value={form.date}
+                name="manualAccountNumber"
+                type="text"
+                placeholder="Enter account number..."
+                value={form.manualAccountNumber}
                 onChange={handleChange}
               />
+              <label>Date:</label>
+              <input name="date" type="text" value={form.date} disabled />
+              <div className="error-holder">
+              {manualAccountError && <span className="error-text">Invalid account number</span>}
+              </div>
             </div>
 
             <div className="form-row">
@@ -220,9 +251,7 @@ export default function Disbursement() {
             </div>
 
             <div className="form-actions">
-              <button type="button" className="btn cancel" onClick={handleClear}>
-                Clear All
-              </button>
+              <button type="button" className="btn cancel" onClick={handleClear}>Clear All</button>
               <button type="submit" className="btn submit">Submit</button>
             </div>
           </form>

@@ -122,12 +122,12 @@ export default function Dashboard() {
 
           <div className="pending-card">
             <div className="card-title">Pending Approvals</div>
-            {pendingApprovals.filter(a => a.status !== "Failed").length === 0 ? (
+            {pendingApprovals.filter(a => a.status === "Pending").length === 0 ? (
               <p className="empty-text">No pending disbursements.</p>
             ) : (
               <ul className="approvals-list">
                 {pendingApprovals.map((a, i) => {
-                  if (a.status === "Failed") return null;
+                  if (a.status !== "Pending") return null;
                   return (
                     <li key={i}>
                       <span className="app-text">
@@ -158,7 +158,7 @@ export default function Dashboard() {
                <button
                  className="check-status"
                  onClick={() => {
-                   navigate("/reports");
+                   navigate("/summary");
                    closeActionModal();
                  }}
                >
