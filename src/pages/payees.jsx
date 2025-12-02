@@ -1,11 +1,11 @@
 import React, { useContext, useState } from "react"
 import "./dashboard.css"
 import "./payees.css"
-import logo from "./logo.png"
-import { NavLink, useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { AppContext } from "../AppContext"
-import settingsicon from "./settingsicon.png"
 import { supabase } from "../lib/supabase"
+import Sidebar from "../components/nav"
+import Topbar from "../components/topbar"
 
 export default function Payees() {
   const navigate = useNavigate()
@@ -252,52 +252,14 @@ export default function Payees() {
 
   return (
     <div className="dash-root">
-      <aside className="sidebar">
-        <div className="logo-wrap">
-          <img src={logo} alt="logo" className="logo" />
-        </div>
-        <nav className="nav">
-          <NavLink to="/dashboard" className="nav-item">Dashboard</NavLink>
-          <NavLink to="/disbursement" className="nav-item">Disbursement</NavLink>
-          <NavLink to="/payees" className="nav-item">Payees</NavLink>
-          <NavLink to="/summary" className="nav-item">Summary</NavLink>
-          <NavLink to="/chartofaccounts" className="nav-item">Chart of Accounts</NavLink>
-        </nav>
-        <button className="logout" onClick={handleLogout}>Log Out</button>
-      </aside>
+     <Sidebar/>
 
       <main className="main">
-         <header className="topbar">
-                                {showSettingsMenu && (
-                                  <div className="settings-menu">
-                                    <button className="settings-item" onClick={() => {
-                                      setShowAccountModal(true);
-                                      setShowSettingsMenu(false);
-                                }}>
-                                  My Account
-                                </button>
-                
-                                <button className="settings-item" onClick={() => {
-                                  setShowStatusModal(true);
-                                  setShowSettingsMenu(false);
-                                }}>
-                                  Account Status
-                                </button>
-                                </div>
-                              )}
-                          <h1 className="page-title">Payees</h1>
-                          <div className="top-controls">
-                            <input className="search" placeholder="Search..." />
-                            <button className="gear" aria-label="settings" onClick={() => setShowSettingsMenu(!showSettingsMenu)}>
-                            <img 
-                              src={settingsicon}
-                              alt="settings" 
-                              style={{ width: "30px", height: "30px" }} 
-                            />
-                          </button>
-                          </div>
-                        </header>
-
+         <Topbar title="Payees"
+         onOpenAccount={() => setShowAccountModal(true)}
+         onOpenStatus={() => setShowStatusModal(true)}
+         onLogout={handleLogout}
+        />
         {/* table plus right-side action column */}
         <div className="table-wrapper">
           <section className="content-table">
